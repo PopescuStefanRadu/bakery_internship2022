@@ -1,6 +1,7 @@
 package ro.esolutions.bakery;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @AllArgsConstructor
+@Builder
 public class ValidationErrors {
     final Map<String, List<String>> errorsByFieldName;
     final List<String> globalErrors;

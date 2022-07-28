@@ -1,19 +1,17 @@
 package ro.esolutions.bakery.product;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import ro.esolutions.bakery.ValidationErrors;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,6 +22,18 @@ import java.util.function.Supplier;
 public class Controller {
 
     private final Repository productsRepo;
+    private final Service service;
+
+    @ExceptionHandler
+    public ResponseEntity<String> handle(EntityNotFoundException ex) {
+//        return ResponseEntity.badRequest()
+//                .body(ValidationErrors.builder()
+//                        .errorsByFieldName(Collections.emptyMap())
+//                        .globalErrors(List.of(ex.getMessage()))
+//                        .build()
+//                );
+        return ResponseEntity.badRequest().body(null);
+    }
 
     @GetMapping("/products")
     public ResponseEntity<List<Product>> GetAll(@RequestParam(required = false) String orderBy) {
@@ -101,8 +111,7 @@ public class Controller {
 
     @GetMapping("/product/{id}")
     public ResponseEntity<Product> GetById(@PathVariable String id) {
-        Product product = productsRepo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Product product = productsRepo.getReferenceById(id);
         return ResponseEntity.ok(product);
     }
 
@@ -119,9 +128,7 @@ public class Controller {
 
     @PatchMapping(path = "/product/{id}")
     public ResponseEntity<Product> Update(@RequestBody PatchModel model, @PathVariable String id) {
-        Product product = productsRepo.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-
-
+        Product product = productsRepo.getReferenceById(id);
         if (model.getClearName()) {
             product.setName(null);
         } else if(model.getName() != null) {
@@ -138,8 +145,6 @@ public class Controller {
 
     @DeleteMapping("/product/{id}")
     public ResponseEntity<Product> Delete(@PathVariable("id") String id) {
-        Product productToRemove = productsRepo.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        productsRepo.delete(productToRemove);
-        return ResponseEntity.ok(productToRemove);
+        return ResponseEntity.ok(service.deleteById(id));
     }
 }
