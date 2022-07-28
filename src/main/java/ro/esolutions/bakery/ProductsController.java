@@ -1,7 +1,10 @@
 package ro.esolutions.bakery;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -39,8 +42,30 @@ public class ProductsController {
         return ResponseEntity.ok(null);
     }
 
+    @PatchMapping(path = "/product/{id}")
+    public ResponseEntity<Product> Update(@RequestBody ProductPatchModel model, @PathVariable String id) {
+        Optional<Product> productToUpdate = shopProducts.stream().filter(p -> p.getId().equals(id)).findFirst();
+        Product product = productToUpdate.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+
+        if (model.getClearName()) {
+            product.setName(null);
+        } else if(model.getName() != null) {
+            product.setName(model.getName());
+        }
+
+        if (model.getClearPrice()) {
+            product.setPrice(null);
+        } else if(model.getPrice() != null) {
+            product.setPrice(model.getPrice());
+        }
+
+        return ResponseEntity.ok(product);
+    }
+
+
     @DeleteMapping("/product/{id}")
-    public ResponseEntity<Product> Delete(@PathVariable("id") String id){
+    public ResponseEntity<Product> Delete(@PathVariable("id") String id) {
         Optional<Product> removedProduct = shopProducts.stream()
                 .filter(p -> p.getId().equals(id))
                 .findFirst();
