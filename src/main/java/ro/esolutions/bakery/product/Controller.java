@@ -8,8 +8,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import ro.esolutions.bakery.ValidationErrors;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +36,11 @@ public class Controller {
     }
 
     @GetMapping("/v2/products")
-    public ResponseEntity<Page<Product>> GetAllFiltered(@ModelAttribute FilterModel filter) {
+    public ResponseEntity<Object> GetAllFiltered(@ModelAttribute @Validated FilterModel filter, BindingResult validation) {
+        if (validation.hasErrors()) {
+            return ResponseEntity.badRequest().body(ValidationErrors.fromBindingResult(validation));
+        }
+
         Specification<Product> nameLike = getSpecIfNotNull(filter::getNameLike, (root, query, criteriaBuilder) ->
                 criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + filter.getNameLike().toLowerCase() + "%"));
         Specification<Product> priceGt = getSpecIfNotNull(filter::getPriceGreaterThan, (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("price"), filter.getPriceGreaterThan())); // gt("price", filter::getPriceGreaterThan)
@@ -49,8 +56,6 @@ public class Controller {
                 : filter.getDirection().equals(Sort.Direction.ASC) ? ordered.ascending() : ordered.descending();
 
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize, sorted);
-
-        Pageable page = filter.getPageSize() == null ?  Pageable.ofSize(1000) : Pageable.ofSize(filter.getPageSize());
 
         return ResponseEntity.ok(productsRepo.findAll(Specification.allOf(specs), pageRequest));
     }
