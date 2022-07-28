@@ -1,6 +1,9 @@
 package ro.esolutions.bakery.product;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -9,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -29,7 +33,7 @@ public class Controller {
     }
 
     @GetMapping("/v2/products")
-    public ResponseEntity<List<Product>> GetAllFiltered(@ModelAttribute FilterModel filter) {
+    public ResponseEntity<Page<Product>> GetAllFiltered(@ModelAttribute FilterModel filter) {
         Specification<Product> nameLike = getSpecIfNotNull(filter::getNameLike, (root, query, criteriaBuilder) ->
                 criteriaBuilder.like(criteriaBuilder.lower(root.get("name")), "%" + filter.getNameLike().toLowerCase() + "%"));
         Specification<Product> priceGt = getSpecIfNotNull(filter::getPriceGreaterThan, (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("price"), filter.getPriceGreaterThan())); // gt("price", filter::getPriceGreaterThan)
@@ -37,8 +41,18 @@ public class Controller {
 
 
         List<Specification<Product>> specs = List.of(nameLike, priceGt, priceLt);
+        Integer pageNumber = Optional.ofNullable(filter.getPageNumber()).orElse(0);
+        Integer pageSize = Optional.ofNullable(filter.getPageSize()).orElse(0);
+        Sort ordered = Optional.ofNullable(filter.getOrderBy()).map(Sort::by).orElse(Sort.unsorted());
+        Sort sorted = filter.getDirection() == null
+                ? ordered
+                : filter.getDirection().equals(Sort.Direction.ASC) ? ordered.ascending() : ordered.descending();
 
-        return ResponseEntity.ok(productsRepo.findAll(Specification.allOf(specs)));
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize, sorted);
+
+        Pageable page = filter.getPageSize() == null ?  Pageable.ofSize(1000) : Pageable.ofSize(filter.getPageSize());
+
+        return ResponseEntity.ok(productsRepo.findAll(Specification.allOf(specs), pageRequest));
     }
 
     // This is how it looks without Specification (JPA criteria API)
