@@ -1,4 +1,4 @@
-package ro.esolutions.bakery;
+package ro.esolutions.bakery.product;
 
 import lombok.*;
 
@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @EqualsAndHashCode
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductPatchModel {
+public class PatchModel {
     private String name;
     @Builder.Default
     private Boolean clearName = Boolean.FALSE;

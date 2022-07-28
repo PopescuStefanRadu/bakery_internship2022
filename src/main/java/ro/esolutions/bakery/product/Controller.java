@@ -1,9 +1,9 @@
-package ro.esolutions.bakery;
+package ro.esolutions.bakery.product;
 
+import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -13,22 +13,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-public class ProductsController {
+@AllArgsConstructor
+public class Controller {
 
-    private final List<Product> shopProducts = new ArrayList<>();
-
-
-    public ProductsController() {
-        shopProducts.add(Product.builder()
-                .price(new BigDecimal("3"))
-                .name("Paine Franzela 2.5Lei")
-                .id(UUID.randomUUID().toString())
-                .build());
-    }
+    private final Repository productsRepo;
 
     @GetMapping("/products")
     public ResponseEntity<List<Product>> GetAll() {
-        return ResponseEntity.ok(shopProducts);
+        return ResponseEntity.ok(productsRepo.findAll());
+    }
+
+    @GetMapping("/product/{id}")
+    public ResponseEntity<Product> GetById(@PathVariable String id) {
+        Product product = productsRepo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        return ResponseEntity.ok(product);
     }
 
     @PostMapping(path = "/product/create")
@@ -38,14 +37,13 @@ public class ProductsController {
                 .price(model.getPrice())
                 .name(model.getName())
                 .build();
-        shopProducts.add(newProduct);
+        productsRepo.save(newProduct);
         return ResponseEntity.ok(null);
     }
 
     @PatchMapping(path = "/product/{id}")
-    public ResponseEntity<Product> Update(@RequestBody ProductPatchModel model, @PathVariable String id) {
-        Optional<Product> productToUpdate = shopProducts.stream().filter(p -> p.getId().equals(id)).findFirst();
-        Product product = productToUpdate.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    public ResponseEntity<Product> Update(@RequestBody PatchModel model, @PathVariable String id) {
+        Product product = productsRepo.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
 
         if (model.getClearName()) {
@@ -59,20 +57,13 @@ public class ProductsController {
         } else if(model.getPrice() != null) {
             product.setPrice(model.getPrice());
         }
-
-        return ResponseEntity.ok(product);
+        return ResponseEntity.ok(productsRepo.save(product));
     }
-
 
     @DeleteMapping("/product/{id}")
     public ResponseEntity<Product> Delete(@PathVariable("id") String id) {
-        Optional<Product> removedProduct = shopProducts.stream()
-                .filter(p -> p.getId().equals(id))
-                .findFirst();
-        removedProduct.ifPresent(shopProducts::remove);
-        if (removedProduct.isPresent()) {
-            return ResponseEntity.ok(removedProduct.get());
-        }
-        return ResponseEntity.notFound().build();
+        Product productToRemove = productsRepo.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        productsRepo.delete(productToRemove);
+        return ResponseEntity.ok(productToRemove);
     }
 }
