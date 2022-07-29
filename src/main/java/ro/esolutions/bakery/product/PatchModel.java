@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PatchModel {
-    @Pattern(regexp = ".*^[0-9].*", message = "nu introduceti cifre in nume")
+    @Pattern(regexp = "\\D*", message = "nu introduceti cifre in nume")
     private String name;
     @Builder.Default
     private Boolean clearName = Boolean.FALSE;

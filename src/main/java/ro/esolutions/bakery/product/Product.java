@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 public class Product {
     @Id
     private String id;
-    @Pattern(regexp = ".*^[0-9].*", message = "nu introduceti cifre in nume")
+    @Pattern(regexp = "\\D*", message = "nu introduceti cifre in nume")
     private String name;
     private BigDecimal price;
 }
