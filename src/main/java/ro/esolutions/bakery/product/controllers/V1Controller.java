@@ -5,9 +5,12 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ro.esolutions.bakery.ValidationErrors;
+import ro.esolutions.bakery.constraints.EntityExistsValidator;
 import ro.esolutions.bakery.product.PatchModel;
 import ro.esolutions.bakery.product.Product;
 import ro.esolutions.bakery.product.Service;
@@ -20,6 +23,7 @@ import java.util.function.Supplier;
 @AllArgsConstructor
 public class V1Controller {
     private final Service service;
+    private final EntityExistsValidator validator;
 
     @ExceptionHandler
     public ResponseEntity<ValidationErrors> handle(DataAccessException ex) {
@@ -55,7 +59,11 @@ public class V1Controller {
 
 
     @PatchMapping(path = "/product/{id}")
-    public ResponseEntity<Product> Update(@RequestBody PatchModel model, @PathVariable String id) {
+    public ResponseEntity<Object> Update(@RequestBody PatchModel model, BindingResult errors, @PathVariable String id) {
+        ValidationUtils.invokeValidator(validator, model, errors);
+        if (errors.hasErrors()) {
+            return ResponseEntity.badRequest().body(ValidationErrors.fromBindingResult(errors));
+        }
         return ResponseEntity.ok(service.update(model, id));
     }
 

@@ -12,6 +12,9 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PatchModel {
+    // we don't really need this here, we have the Id in the path variable, this is done just for
+    // example purposes for Validator interface
+    private String id;
     @Pattern(regexp = "\\D*", message = "nu introduceti cifre in nume")
     private String name;
     @Builder.Default
