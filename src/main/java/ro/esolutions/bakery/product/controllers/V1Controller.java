@@ -1,4 +1,4 @@
-package ro.esolutions.bakery.product;
+package ro.esolutions.bakery.product.controllers;
 
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataAccessException;
@@ -8,6 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ro.esolutions.bakery.ValidationErrors;
+import ro.esolutions.bakery.product.PatchModel;
+import ro.esolutions.bakery.product.Product;
+import ro.esolutions.bakery.product.Service;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +18,7 @@ import java.util.function.Supplier;
 
 @RestController
 @AllArgsConstructor
-public class Controller {
+public class V1Controller {
     private final Service service;
 
     @ExceptionHandler
@@ -53,12 +56,11 @@ public class Controller {
 
     @PatchMapping(path = "/product/{id}")
     public ResponseEntity<Product> Update(@RequestBody PatchModel model, @PathVariable String id) {
-        return ResponseEntity.ok(service.updateProduct(model, id));
+        return ResponseEntity.ok(service.update(model, id));
     }
 
     @DeleteMapping("/product/{id}")
     public ResponseEntity<Product> Delete(@PathVariable("id") String id) {
-
         Product body = service.deleteById(id);
         return ResponseEntity.ok(body);
     }

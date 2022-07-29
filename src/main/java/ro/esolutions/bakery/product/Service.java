@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static ro.esolutions.bakery.product.Controller.getSpecIfNotNull;
+import static ro.esolutions.bakery.product.controllers.V1Controller.getSpecIfNotNull;
 
 @Component
 @AllArgsConstructor
@@ -49,7 +49,7 @@ public class Service {
         return productsRepo.save(newProduct);
     }
 
-    public Product updateProduct(PatchModel model, String id) {
+    public Product update(PatchModel model, String id) {
         Product product = productsRepo.getReferenceById(id);
         if (model.getClearName()) {
             product.setName(null);

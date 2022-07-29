@@ -1,4 +1,4 @@
-package ro.esolutions.bakery.product;
+package ro.esolutions.bakery.product.controllers;
 
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -8,10 +8,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RestController;
 import ro.esolutions.bakery.ValidationErrors;
+import ro.esolutions.bakery.product.FilterModel;
+import ro.esolutions.bakery.product.Service;
 
 @RestController
 @AllArgsConstructor
-public class ControllerV2 {
+public class V2 {
     private final Service service;
 
     @GetMapping("/v2/products")

@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class Product {
     @Id
-    @Null(groups = {CreateModelConstraints.class})
+    @Null(groups = {CreateModelConstraints.class}, message = "trebuie sa fie null pentru operatiunea de creare")
     private String id;
     @Pattern(regexp = "\\D*", message = "nu introduceti cifre in nume")
     private String name;
