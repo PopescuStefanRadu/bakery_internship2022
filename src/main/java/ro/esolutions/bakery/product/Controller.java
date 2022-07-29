@@ -2,6 +2,8 @@ package ro.esolutions.bakery.product;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -25,14 +27,13 @@ public class Controller {
     private final Service service;
 
     @ExceptionHandler
-    public ResponseEntity<String> handle(EntityNotFoundException ex) {
-//        return ResponseEntity.badRequest()
-//                .body(ValidationErrors.builder()
-//                        .errorsByFieldName(Collections.emptyMap())
-//                        .globalErrors(List.of(ex.getMessage()))
-//                        .build()
-//                );
-        return ResponseEntity.badRequest().body(null);
+    public ResponseEntity<ValidationErrors> handle(DataAccessException ex) {
+        return ResponseEntity.badRequest()
+                .body(ValidationErrors.builder()
+                        .errorsByFieldName(Collections.emptyMap())
+                        .globalErrors(List.of(ex.getMessage()))
+                        .build()
+                );
     }
 
     @GetMapping("/products")
@@ -145,6 +146,8 @@ public class Controller {
 
     @DeleteMapping("/product/{id}")
     public ResponseEntity<Product> Delete(@PathVariable("id") String id) {
-        return ResponseEntity.ok(service.deleteById(id));
+
+        Product body = service.deleteById(id);
+        return ResponseEntity.ok(body);
     }
 }
